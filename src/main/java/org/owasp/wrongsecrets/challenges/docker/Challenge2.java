@@ -1,62 +1,30 @@
 package org.owasp.wrongsecrets.challenges.docker;
 
-
-import org.owasp.wrongsecrets.RuntimeEnvironment;
-import org.owasp.wrongsecrets.ScoreCard;
-import org.owasp.wrongsecrets.challenges.Challenge;
-import org.owasp.wrongsecrets.challenges.ChallengeTechnology;
-import org.owasp.wrongsecrets.challenges.Spoiler;
+import org.owasp.wrongsecrets.challenges.FixedAnswerChallenge;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-import static org.owasp.wrongsecrets.RuntimeEnvironment.Environment.DOCKER;
-
+/**
+ * This challenge requires the participant to provide a hardcoded password to pass the challenge.
+ * This challenge can be run in CTF mode and is limited to using Docker as a runtime environment.
+ * The javadoc is generated using ChatGPT.
+ */
 @Component
-@Order(2)
-public class Challenge2 extends Challenge {
+public class Challenge2 extends FixedAnswerChallenge {
 
-    private final String hardcodedPassword;
+  private final String hardcodedPassword;
 
-    public Challenge2(ScoreCard scoreCard, @Value("${password}") String hardcodedPassword) {
-        super(scoreCard);
-        this.hardcodedPassword = hardcodedPassword;
-    }
+  /**
+   * Constructor for creating a new Challenge2 object.
+   *
+   * @param hardcodedPassword The hardcoded password for the challenge.
+   */
+  public Challenge2(@Value("${password}") String hardcodedPassword) {
+    this.hardcodedPassword = hardcodedPassword;
+  }
 
-    @Override
-    public boolean canRunInCTFMode() {
-        return true;
-    }
-
-    @Override
-    public Spoiler spoiler() {
-        return new Spoiler(hardcodedPassword);
-    }
-
-    @Override
-    public boolean answerCorrect(String answer) {
-        return hardcodedPassword.equals(answer);
-    }
-
-    public List<RuntimeEnvironment.Environment> supportedRuntimeEnvironments() {
-        return List.of(DOCKER);
-    }
-
-    @Override
-    public int difficulty() {
-        return 1;
-    }
-
-    @Override
-    public String getTech() {
-        return ChallengeTechnology.Tech.GIT.id;
-    }
-
-    @Override
-    public boolean isLimittedWhenOnlineHosted() {
-        return false;
-    }
-
+  @Override
+  public String getAnswer() {
+    return this.hardcodedPassword;
+  }
 }

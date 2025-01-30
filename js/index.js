@@ -1,4 +1,5 @@
-function secret() {
- var password = "jLJIQZM=" + 9 + "aG7l" + 6 + "LAQ=" + 2 + "UdiM" + 7;
+
+ function secret() {
+ var password = "cxsWHCc=" + 9 + "3bmI" + 6 + "2FA=" + 2 + "vYuX" + 7;
  return password;
  }

@@ -19,7 +19,6 @@ Make sure you have an active account at GCP for which you have configured the cr
 
 Please note that this setup relies on bash scripts that have been tested in MacOS and Linux. We have no intention of supporting vanilla Windows at the moment.
 
-
 ### Multi-user setup: shared state
 
 If you want to host a multi-user setup, you will probably want to share the state file so that everyone can try related challenges. We have provided a starter to easily do so using a Terraform gcs backend.
@@ -49,7 +48,7 @@ The bucket name should be in the output. Please use that to configure the Terraf
 6. Run `terraform plan`
 7. Run `terraform apply`. Note: the apply will take 10 to 20 minutes depending on the speed of the GCP backplane.
 8. Run `export USE_GKE_GCLOUD_AUTH_PLUGIN=True`
-9When creation is done, run `gcloud container clusters get-credentials wrongsecrets-exercise-cluster --region YOUR_REGION`. Note if it errors on a missing plugin to support `kubectl`, then run `gcloud components install gke-gcloud-auth-plugin` and `gcloud container clusters get-credentials wrongsecrets-exercise-cluster` .
+9. When creation is done, run `gcloud container clusters get-credentials wrongsecrets-exercise-cluster --region YOUR_REGION`. Note if it errors on a missing plugin to support `kubectl`, then run `gcloud components install gke-gcloud-auth-plugin` and `gcloud container clusters get-credentials wrongsecrets-exercise-cluster` .
 10. Run `./k8s-vault-gcp-start.sh`
 
 ### GKE ingres for shared deployment
@@ -60,6 +59,10 @@ Please note that the GKE ingress can take a few minues to deploy and is publicly
 Your GKE cluster should be visible in [EU-West4](https://console.cloud.google.com/kubernetes?referrer=search&project=wrongsecrets) by default. Want a different region? You can modify `terraform.tfvars` or input it directly using the `region` variable in plan/apply.
 
 Are you done playing? Please run `terraform destroy` twice to clean up.
+
+#### Setting up TLS
+
+In order to use TLS, you will need to set up your own domain name and configure the load balancer to use TLS. Please refer to the official [GCP documentation](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#options_for_providing_ssl_certificates) on how to do that.
 
 ### Test it
 
@@ -86,34 +89,19 @@ When you're done:
 3. Can you get the secrets in the SSM Parameter Store and Secret Manager easily? Which paths do you see?
 4. You should see at the configuration details of the cluster that `databaseEncryption` is `DECRYPTED` (`gcloud container clusters describe wrongsecrets-exercise-cluster --region europe-west4`). What does that mean?
 
+## Running Terratest
+
+Want to see if the setup still works? You can use terratest to check if the current setup works via automated terratest tests, for this you need to make sure that you have installed terraform and Go version 1.21. Next, you will need to install the modules and set up credentials.
+
+1. Run `go mod download`.
+2. Run `gcloud auth application-default login`.
+3. Run `go test -timeout 99999s`. The default timeout is 10 min, which is too short for our purposes. We need to override that.
+
 ## Terraform documentation
 
 The documentation below is auto-generated to give insight on what's created via Terraform.
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.1 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | ~> 4.52.0 |
-| <a name="requirement_google-beta"></a> [google-beta](#requirement\_google-beta) | ~> 4.52.0 |
-| <a name="requirement_http"></a> [http](#requirement\_http) | ~> 3.2.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.4.3 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | ~> 4.52.0 |
-| <a name="provider_google-beta"></a> [google-beta](#provider\_google-beta) | ~> 4.52.0 |
-| <a name="provider_http"></a> [http](#provider\_http) | ~> 3.2.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.4.3 |
-
-## Modules
-
-No modules.
-
+<!-- BEGIN_TF_DOCS -->
 ## Resources
 
 | Name | Type |
@@ -144,9 +132,9 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | The GKE cluster name | `string` | `"wrongsecrets-exercise-cluster"` | no |
-| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | The GKE cluster version to use | `string` | `"1.23"` | no |
+| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | The GKE cluster version to use | `string` | `"1.30"` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | project id | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | The GCP region to use | `string` | `"eu-west4"` | no |
+| <a name="input_region"></a> [region](#input\_region) | The GCP region to use | `string` | `"europe-west4"` | no |
 
 ## Outputs
 
@@ -157,4 +145,4 @@ No modules.
 | <a name="output_kubernetes_cluster_name"></a> [kubernetes\_cluster\_name](#output\_kubernetes\_cluster\_name) | GKE Cluster Name |
 | <a name="output_project_id"></a> [project\_id](#output\_project\_id) | GCloud Project ID |
 | <a name="output_region"></a> [region](#output\_region) | GCloud Region |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

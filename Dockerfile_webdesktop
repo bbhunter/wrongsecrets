@@ -1,4 +1,4 @@
-FROM lscr.io/linuxserver/webtop:4.16-r0-ls72
+FROM lscr.io/linuxserver/webtop:4.16-r0-ls95
 LABEL NAME="OWASP WrongSecrets Web Desktop" MAINTAINER="Jeroen Willemsen"
 
 RUN \
@@ -9,7 +9,7 @@ RUN \
 
 RUN \
   echo "**** install packages ****" && \
-  apk add --no-cache shadow keepassxc radare2 aws-cli geany git && \
+  apk add --no-cache shadow keepassxc radare2 aws-cli geany git build-base icu-libs icu-data-full&& \
   echo "**** adding abc user to root for Docker ****" && \
   usermod -aG root abc && \
   touch /var/run/docker.sock && \
@@ -17,13 +17,26 @@ RUN \
   echo "**** cleanup ****" && \
   rm -rf /tmp/*
 
+RUN \
+  export DOTNET_INSTALL_DIR="/etc/dotnet" && \
+  echo "installing dotnet" && \
+  wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
+  chmod +x dotnet-install.sh && \
+  ./dotnet-install.sh --version latest && \
+  export DOTNET_ROOT=/etc/dotnet && \
+  export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools && \
+  export PATH="$PATH:/config/.dotnet/tools" &&\
+  dotnet tool install ilspycmd --version 9.0.0.7660-preview2 --tool-path /etc/dotnet/tools
+
 WORKDIR /config/Desktop
 
-COPY src/main/resources/executables/*linux* /config/Desktop/wrongsecrets/
-COPY src/test/resources/alibabacreds.kdbx /var/tmp/helpers/
+COPY src/main/resources/executables/*linux-mus* /var/tmp/wrongsecrets/
+COPY src/main/resources/executables/decrypt/ /var/tmp/wrongsecrets/decrypt/
+COPY src/main/resources/executables/wrongsecrets-advanced-c-windows.exe /var/tmp/wrongsecrets/
+COPY src/main/resources/executables/secrchallenge.md /var/tmp/wrongsecrets/
+COPY src/main/resources/executables/secrchallenge.json /var/tmp/wrongsecrets/
 COPY src/test/resources/alibabacreds.kdbx /var/tmp/wrongsecrets/
 COPY wrongsecret-desktop-resources/welcome.md /var/tmp/wrongsecrets/
 
-RUN sudo chown abc /var/tmp/wrongsecrets
 
 COPY wrongsecret-desktop-resources/startwm.sh /defaults/startwm.sh

@@ -89,31 +89,18 @@ When you're done:
 2. Can you easily obtain the AKS managed identity of the Node?
 3. Can you get the secrets in the Key vault? Which paths do you see?
 
+## Running Terratest
+
+Want to see if the setup still works? You can use terratest to check if the current setup works via automated terratest tests, for this you need to make sure that you have installed terraform and Go version 1.21. Next, you will need to install the modules and set up credentials.
+
+1. Run `go mod download`
+2. Run `az login` and make sure you are on the right subscription. If necessary, use `az account list` and `az account set --subscription <your-subscription-id-here>`.
+3. Run `go test -timeout 99999s`. The default timeout is 10 min, which is too short for our purposes. We need to override that.
+
 ## Terraform documentation
 The documentation below is auto-generated to give insight on what's created via Terraform.
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.1 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 3.42.0 |
-| <a name="requirement_http"></a> [http](#requirement\_http) | ~> 3.2.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.4.3 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 3.42.0 |
-| <a name="provider_http"></a> [http](#provider\_http) | ~> 3.2.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.4.3 |
-
-## Modules
-
-No modules.
-
+<!-- BEGIN_TF_DOCS -->
 ## Resources
 
 | Name | Type |
@@ -143,7 +130,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | The AKS cluster name | `string` | `"wrongsecrets-exercise-cluster"` | no |
-| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | The AKS cluster version to use | `string` | `"1.23.12"` | no |
+| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | The AKS cluster version to use | `string` | `"1.30"` | no |
 | <a name="input_region"></a> [region](#input\_region) | The Azure region to use | `string` | `"East US"` | no |
 
 ## Outputs
@@ -160,4 +147,4 @@ No modules.
 | <a name="output_tenant_id"></a> [tenant\_id](#output\_tenant\_id) | Azure tenant ID |
 | <a name="output_vault_name"></a> [vault\_name](#output\_vault\_name) | Vault name |
 | <a name="output_vault_uri"></a> [vault\_uri](#output\_vault\_uri) | Vault URI |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

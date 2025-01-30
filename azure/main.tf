@@ -15,7 +15,15 @@ data "http" "ip" {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy          = false
+      recover_soft_deleted_key_vaults       = true
+      purge_soft_deleted_secrets_on_destroy = false
+      purge_soft_deleted_keys_on_destroy    = false
+      recover_soft_deleted_secrets          = false
+    }
+  }
 
   skip_provider_registration = true
 }
@@ -43,7 +51,9 @@ resource "azurerm_kubernetes_cluster" "cluster" {
 
   kubernetes_version = var.cluster_version
 
-  api_server_authorized_ip_ranges = ["${data.http.ip.response_body}/32"]
+  api_server_access_profile {
+    authorized_ip_ranges = ["${data.http.ip.response_body}/32"]
+  }
 
   network_profile {
     network_plugin = "azure"
