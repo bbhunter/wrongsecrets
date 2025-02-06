@@ -1,26 +1,18 @@
 package org.owasp.wrongsecrets.challenges.docker;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.owasp.wrongsecrets.ScoreCard;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.owasp.wrongsecrets.Challenges.ErrorResponses.DECRYPTION_ERROR;
 
-@ExtendWith(MockitoExtension.class)
+import org.junit.jupiter.api.Test;
+
 class Challenge26Test {
 
-    @Mock
-    private ScoreCard scoreCard;
-
-    @Test
-    void rightAnswerShouldSolveChallenge() {
-        var challenge = new Challenge26(scoreCard, "gbU5thfgy8nwzF/qc1Pq59PrJzLB+bfAdTOrx969JZx1CKeG4Sq7v1uUpzyCH/Fo8W8ghdBJJrQORw==");
-        Assertions.assertThat(challenge.solved(challenge.spoiler().solution())).isTrue();
-        Mockito.verify(scoreCard).completeChallenge(challenge);
-    }
-
-
-
+  @Test
+  void rightAnswerShouldSolveChallenge() {
+    var challenge =
+        new Challenge26(
+            "gbU5thfgy8nwzF/qc1Pq59PrJzLB+bfAdTOrx969JZx1CKeG4Sq7v1uUpzyCH/Fo8W8ghdBJJrQORw==");
+    assertThat(challenge.spoiler().solution()).isNotEqualTo(DECRYPTION_ERROR);
+    assertThat(challenge.answerCorrect(challenge.spoiler().solution())).isTrue();
+  }
 }

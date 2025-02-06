@@ -1,54 +1,45 @@
 package org.owasp.wrongsecrets.challenges.docker;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.owasp.wrongsecrets.ScoreCard;
-import org.owasp.wrongsecrets.challenges.Spoiler;
-import org.owasp.wrongsecrets.challenges.cloud.Challenge9;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.owasp.wrongsecrets.Challenges;
+import org.owasp.wrongsecrets.challenges.Spoiler;
 
-@ExtendWith(MockitoExtension.class)
 class Challenge12Test {
 
-    @Mock
-    private ScoreCard scoreCard;
+  @Test
+  void solveChallenge12WithoutFile(@TempDir Path dir) throws Exception {
+    var challenge = new Challenge12(dir.toString());
 
-    @Test
-    void solveChallenge12WithoutFile(@TempDir Path dir) throws Exception {
-        var challenge = new Challenge12(scoreCard, dir.toString());
+    assertThat(challenge.answerCorrect("secretvalueWitFile")).isFalse();
+    assertThat(challenge.answerCorrect(Challenges.ErrorResponses.FILE_MOUNT_ERROR)).isTrue();
+  }
 
-        Assertions.assertThat(challenge.answerCorrect("secretvalueWitFile")).isFalse();
-        Assertions.assertThat(challenge.answerCorrect("if_you_see_this_please_use_docker_instead")).isTrue();
-    }
+  @Test
+  void solveChallenge12WithMNTFile(@TempDir Path dir) throws Exception {
+    var testFile = new File(dir.toFile(), "yourkey.txt");
+    var secret = "secretvalueWitFile";
+    Files.writeString(testFile.toPath(), secret);
 
-    @Test
-    void solveChallenge12WithMNTFile(@TempDir Path dir) throws Exception {
-        var testFile = new File(dir.toFile(), "yourkey.txt");
-        var secret = "secretvalueWitFile";
-        Files.writeString(testFile.toPath(), secret);
+    var challenge = new Challenge12(dir.toString());
 
-        var challenge = new Challenge12(scoreCard, dir.toString());
+    assertThat(challenge.answerCorrect("secretvalueWitFile")).isTrue();
+  }
 
-        Assertions.assertThat(challenge.answerCorrect("secretvalueWitFile")).isTrue();
-    }
+  @Test
+  void spoilShouldReturnCorrectAnswer(@TempDir Path dir) throws IOException {
+    var testFile = new File(dir.toFile(), "yourkey.txt");
+    var secret = "secretvalueWitFile";
+    Files.writeString(testFile.toPath(), secret);
 
-    @Test
-    void spoilShouldReturnCorrectAnswer(@TempDir Path dir) throws IOException {
-        var testFile = new File(dir.toFile(), "yourkey.txt");
-        var secret = "secretvalueWitFile";
-        Files.writeString(testFile.toPath(), secret);
+    var challenge = new Challenge12(dir.toString());
 
-        var challenge = new Challenge12(scoreCard, dir.toString());
-
-        Assertions.assertThat(challenge.spoiler()).isEqualTo(new Spoiler("secretvalueWitFile"));
-    }
-
+    assertThat(challenge.spoiler()).isEqualTo(new Spoiler("secretvalueWitFile"));
+  }
 }

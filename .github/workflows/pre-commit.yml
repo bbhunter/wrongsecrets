@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  TF_DOCS_VERSION: v0.16.0
-  TFSEC_VERSION: v1.27.6
-  TFLINT_VERSION: v0.41.0
+  TF_DOCS_VERSION: v0.19.0
+  TFLINT_VERSION: v0.53.0
+  TRIVY_VERSION: 0.58.0
 permissions:
   contents: read
 jobs:
@@ -18,22 +18,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
-      - uses: actions/cache@v3
+          python-version: "3.11"
+      - name: Format python code with black
+        uses: psf/black@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "oracle"
+          java-version: "23"
+      - name: Install npm dependencies
+        run: npm install
+      - uses: actions/cache@v4
         name: Cache plugin dir
         with:
           path: ~/.tflint.d/plugins
           key: ${{ matrix.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.1.7
+          terraform_version: 1.9.8
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v3
+        uses: terraform-linters/setup-tflint@v4
         with:
           tflint_version: ${{env.TFLINT_VERSION}}
       - name: Setup Terraform docs
@@ -42,10 +54,12 @@ jobs:
           tar -zxvf terraform_docs.tar.gz terraform-docs
           chmod +x terraform-docs
           mv terraform-docs /usr/local/bin/
-      - name: Setup tfsec
+      - name: Setup trivy
         run: |
-          curl --output tfsec https://github.com/aquasecurity/tfsec/releases/download/${{env.TFSEC_VERSION}}/tfsec-linux-amd64
-          chmod +x tfsec
-          mv tfsec /usr/local/bin/
+          wget https://github.com/aquasecurity/trivy/releases/download/v${{env.TRIVY_VERSION}}/trivy_${{env.TRIVY_VERSION}}_Linux-64bit.deb
+          sudo dpkg -i trivy_${{env.TRIVY_VERSION}}_Linux-64bit.deb
       - name: Pre-commit checks
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
+      - name: pre-commit-ci-lite
+        uses: pre-commit-ci/lite-action@v1.1.0
+        if: always()

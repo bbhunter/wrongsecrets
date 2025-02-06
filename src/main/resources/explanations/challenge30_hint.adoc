@@ -1,0 +1,11 @@
+There are two ways to solve this challenge:
+
+1. By looking at the storage:
+- Navigate to "localhost:8080" in your web browser.
+- Open the developer console by inspecting.
+- Navigate to the Applications section of the developer console.
+- The value associated with the key "secret" is your answer!
+2. By looking at the network traffic:
+- Navigate to WrongSecrets in your web browser.
+- Open the developer console.
+- Check the network tab: can you spot the extra call for this given challenge and its return value?

@@ -22,6 +22,9 @@ locals {
 
 provider "aws" {
   region = var.region
+  default_tags {
+    tags = var.tags
+  }
 }
 
 provider "random" {}
@@ -37,7 +40,7 @@ data "aws_availability_zones" "available" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.19.0"
+  version = "~> 5.17.0"
 
   name                 = "${var.cluster_name}-vpc"
   cidr                 = local.vpc_cidr
@@ -62,7 +65,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.7.0"
+  version = "20.33.1"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
@@ -77,6 +80,8 @@ module "eks" {
   cluster_endpoint_public_access_cidrs = ["${data.http.ip.response_body}/32"]
 
   enable_irsa = true
+
+  enable_cluster_creator_admin_permissions = true
 
   eks_managed_node_group_defaults = {
     disk_size       = 50

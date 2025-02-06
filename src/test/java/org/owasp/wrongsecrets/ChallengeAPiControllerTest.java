@@ -1,43 +1,32 @@
 package org.owasp.wrongsecrets;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
+@AutoConfigureMockMvc
 class ChallengeAPiControllerTest {
-    @LocalServerPort
-    private int port;
 
-    @Autowired
-    private RestTemplateBuilder builder;
+  @Autowired private MockMvc mvc;
 
-    public ChallengeAPiControllerTest() {
-    }
+  public ChallengeAPiControllerTest() {}
 
-    @Test
-    void shouldGetListOfChallenges() {
-        var restTemplate = builder.build();
-
-        var callbackAdress = "http://localhost:" + port + "/api/Challenges";
-
-        try {
-            var response = restTemplate.getForEntity(callbackAdress, String.class);
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).contains("hint");
-        } catch (RestClientResponseException e) {
-            fail(e);
-        }
-    }
+  @Test
+  void shouldGetListOfChallenges() throws Exception {
+    mvc.perform(get("/api/Challenges"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("hint")));
+  }
 }
 
 /*
-"manageUrl" : "url", "memo" : "memo", "channel" : "channel", "time" : "time", "additionalData" : { "srcIp" : "soruce", "useragent" : "agent", "referer" : "referer", "location" : "locatoin"}}
+"manageUrl" : "url", "memo" : "memo", "channel" : "channel", "time" : "time", "additionalData" : { "srcIp" : "source", "useragent" : "agent", "referer" : "referer", "location" : "location"}}
  */

@@ -25,7 +25,7 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-.DS_STORE
+.DS_Store
 target
 
 .vscode
@@ -43,8 +43,7 @@ root_token
 # Terraform
 kubeconfig_wrongsecrets-exercise-cluster
 .terraform
-.terraform.lock.hcl
-.terraform*
+.terraform
 terraform.tfstate*
 aws/terraform.tfstate.*
 aws/terraform.tfstate.backup
@@ -66,6 +65,38 @@ azure/k8s/pod-id.yml
 # Challenge 17
 .github/scripts/thirdkey.txt
 
+yourkey.txt
+
+# Challenge 36
+src/main/resources/executables/.gdb_history
+src/main/resources/executables/decrypt/decrypt
+
+# Challenge 50
+src/main/resources/executables/wrongsecrets-dotnet
+src/main/resources/executables/wrongsecrets-dotnet*
+
 # Node JS
 js/node/
 js/node_modules/
+node_modules
+.npm
+
+# Cypress
+src/test/e2e/cypress/videos
+src/test/e2e/cypress/screenshots
+src/test/e2e/cypress/reports
+src/test/k8s-tests/cypress/videos
+src/test/k8s-tests/cypress/screenshots
+src/test/k8s-tests/cypress/reports
+cypress/downloads
+py_env
+tmp/
+.env
+contributors_file*
+
+##documentation
+scripts/sort_contibutors/.env
+scripts/sort_contibutors/contributors_file.*
+
+#optimizations
+.github/scripts/binary_version.txt

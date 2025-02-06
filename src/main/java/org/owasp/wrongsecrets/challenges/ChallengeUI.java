@@ -1,93 +1,245 @@
 package org.owasp.wrongsecrets.challenges;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import org.owasp.wrongsecrets.RuntimeEnvironment;
+import org.owasp.wrongsecrets.ScoreCard;
+import org.owasp.wrongsecrets.definitions.ChallengeDefinition;
+import org.owasp.wrongsecrets.definitions.Difficulty;
+import org.owasp.wrongsecrets.definitions.Environment;
+import org.owasp.wrongsecrets.definitions.Navigator;
+import org.owasp.wrongsecrets.definitions.Sources.ChallengeSource;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-/**
- * Wrapper class to move logic from Thymeleaf to keep logic in code instead of the html file.
- */
+/** Wrapper class to move logic from Thymeleaf to keep logic in code instead of the html file. */
 @Getter
 public class ChallengeUI {
 
-    private static final Pattern challengePattern = Pattern.compile("(\\D+)(\\d+)");
+  private final DifficultyUI difficultyUI;
+  private final List<Environment> environments;
+  private final Navigator navigation;
 
-    private final Challenge challenge;
-    private final int challengeNumber;
-    private final RuntimeEnvironment runtimeEnvironment;
+  /** Wrapper class to express the difficulty level into a UI representation. */
+  private record DifficultyUI(int difficulty, int totalOfDifficultyLevels) {
 
-    public ChallengeUI(Challenge challenge, int challengeNumber, RuntimeEnvironment runtimeEnvironment) {
-        this.challenge = challenge;
-        this.challengeNumber = challengeNumber;
-        this.runtimeEnvironment = runtimeEnvironment;
+    public String minimal() {
+      return "☆".repeat(difficulty);
     }
 
-    public String getName() {
-        var matchers = challengePattern.matcher(challenge.getClass().getSimpleName());
-        if (matchers.matches()) {
-            return matchers.group(1) + " " + matchers.group(2);
-        }
-        return "Unknown";
+    public String scale() {
+      String fullScale = "★".repeat(difficulty) + "☆".repeat(totalOfDifficultyLevels);
+      return fullScale.substring(0, totalOfDifficultyLevels);
     }
+  }
 
-    public Integer getLink() {
-        return challengeNumber;
-    }
+  private final ChallengeDefinition challengeDefinition;
+  private final ScoreCard scoreCard;
+  private final RuntimeEnvironment runtimeEnvironment;
+  private final List<Difficulty> difficulties;
 
-    public String getTech() {
-        return challenge.getTech();
-    }
+  public ChallengeUI(
+      ChallengeDefinition challengeDefinition,
+      ScoreCard scoreCard,
+      RuntimeEnvironment runtimeEnvironment,
+      List<Difficulty> difficulties,
+      List<Environment> environments,
+      Navigator navigation) {
+    this.challengeDefinition = challengeDefinition;
+    this.scoreCard = scoreCard;
+    this.runtimeEnvironment = runtimeEnvironment;
+    this.difficulties = difficulties;
+    this.environments = environments;
+    this.navigation = navigation;
+    this.difficultyUI =
+        new DifficultyUI(challengeDefinition.difficulty(difficulties), difficulties.size());
+  }
 
-    public Integer next() {
-        return challengeNumber + 1;
-    }
+  /**
+   * Converts the name of the class into the challenge name.
+   *
+   * @return String with name of the challenge.
+   */
+  public String getName() {
+    return challengeDefinition.name().name();
+  }
 
-    public Integer previous() {
-        return challengeNumber - 1;
-    }
+  /**
+   * gives back the number of the challenge.
+   *
+   * @return the html friendly shortName name for the challenge
+   */
+  public String getLink() {
+    return challengeDefinition.name().shortName();
+  }
 
-    public String getExplanation() {
-        return challenge.getExplanation();
-    }
+  /**
+   * Returns the tech used for a challenge.
+   *
+   * @return string with tech.
+   */
+  public String getTech() {
+    return challengeDefinition.category().category();
+  }
 
-    public String getHint() {
-        List<RuntimeEnvironment.Environment> limitedOnlineEnvs = List.of(RuntimeEnvironment.Environment.HEROKU_DOCKER, RuntimeEnvironment.Environment.FLY_DOCKER, RuntimeEnvironment.Environment.OKTETO_K8S);
-        if (limitedOnlineEnvs.contains(runtimeEnvironment.getRuntimeEnvironment()) && challenge.isLimittedWhenOnlineHosted()) {
-            return challenge.getHint() + "_limitted";
-        }
-        return challenge.getHint();
-    }
+  /**
+   * Returns the number of the next challenge (e.g current+1).
+   *
+   * @return int with next challenge number.
+   */
+  public String next() {
+    return navigation.next().map(c -> c.name().shortName()).orElse(null);
+  }
 
-    public String getReason() {
-        return challenge.getReason();
-    }
+  /**
+   * Returns the number of the previous challenge.
+   *
+   * @return int with previous challenge number.
+   */
+  public String previous() {
+    return navigation.previous().map(c -> c.name().shortName()).orElse(null);
+  }
 
-    public String requiredEnv() {
-        return challenge.supportedRuntimeEnvironments().stream()
-            .map(Enum::name)
-            .limit(1)
-            .collect(Collectors.joining());
+  private String documentation(Function<ChallengeSource, String> extractor) {
+    if (runtimeEnvironment.canRun(challengeDefinition)) {
+      return challengeDefinition.source(runtimeEnvironment).map(extractor).orElse("");
+    } else {
+      // We cannot run the challenge but showing documentation should still be possible
+      return extractor.apply(challengeDefinition.sources().getFirst());
     }
+  }
 
-    public int difficulty() {
-        return challenge.difficulty();
-    }
+  /**
+   * Returns filename of the explanation of the challenge.
+   *
+   * @return String with filename.
+   */
+  public String getExplanation() {
+    return documentation(s -> s.explanation().fileName());
+  }
 
-    public boolean isChallengeEnabled() {
-        if (runtimeEnvironment.runtimeInCTFMode()) {
-            return runtimeEnvironment.canRun(challenge) && challenge.canRunInCTFMode();
-        }
-        return runtimeEnvironment.canRun(challenge);
-    }
+  /**
+   * Returns filename of the hints for the challenge.
+   *
+   * @return String with filename.
+   */
+  public String getHint() {
+    return documentation(s -> s.hint().fileName());
+  }
 
-    public static List<ChallengeUI> toUI(List<Challenge> challenges, RuntimeEnvironment environment) {
-        return challenges.stream()
-            .sorted(Comparator.comparingInt(challenge -> Integer.parseInt(challenge.getClass().getSimpleName().replace("Challenge", ""))))
-            .map(challenge -> new ChallengeUI(challenge, challenges.indexOf(challenge), environment))
-            .toList();
+  /**
+   * Returns filename of the reasons of the challenge.
+   *
+   * @return String with filename.
+   */
+  public String getReason() {
+    return documentation(s -> s.reason().fileName());
+  }
+
+  /**
+   * String providing the minimal required env. Used in homescreen.
+   *
+   * @return String with required env.
+   */
+  public String requiredEnv() {
+    return challengeDefinition.supportedEnvironments().stream()
+        .map(e -> e.name())
+        .limit(1)
+        .collect(Collectors.joining())
+        .toUpperCase();
+  }
+
+  /**
+   * Returns the difficulty level in stars on a full scale, for example for level NORMAL it will
+   * return "★★☆☆☆".
+   *
+   * @return stars
+   */
+  public String getStarsOnScale() {
+    return difficultyUI.scale();
+  }
+
+  /**
+   * Used to setup the label for the link to the challenge on the homescreen return "challenge
+   * 1(_disabled)(_solveD)-link".
+   *
+   * @return label
+   */
+  public String getDataLabel() {
+    String label = challengeDefinition.name().shortName().trim().toLowerCase();
+    if (!this.isChallengeEnabled()) {
+      label = label + "_disabled";
     }
+    if (challengeCompleted()) {
+      label = label + "_completed";
+    }
+    label = label + "-link";
+    return label;
+  }
+
+  /**
+   * Used to return whether the challenge is completed or not.
+   *
+   * @return boolean
+   */
+  public boolean challengeCompleted() {
+    if (!runtimeEnvironment.runtimeInCTFMode()) {
+      return scoreCard.getChallengeCompleted(challengeDefinition);
+    }
+    return false;
+  }
+
+  /**
+   * Returns the difficulty level in stars, for example for level NORMAL it will return "☆☆".
+   *
+   * @return stars
+   */
+  public String getStars() {
+    return difficultyUI.minimal();
+  }
+
+  /**
+   * checks whether challenge is enabled based on used runtimemode and CTF enablement.
+   *
+   * @return boolean true if the challenge can run.
+   */
+  public boolean isChallengeEnabled() {
+    if (runtimeEnvironment.runtimeInCTFMode()) {
+      return runtimeEnvironment.canRun(challengeDefinition) && challengeDefinition.ctf().enabled();
+    }
+    return runtimeEnvironment.canRun(challengeDefinition);
+  }
+
+  public String getUiSnippet() {
+    return challengeDefinition
+        .source(runtimeEnvironment)
+        .map(source -> source.uiSnippet())
+        .orElse("");
+  }
+
+  public String getRuntimeEnvironmentCategory() {
+    var challengeEnvironmentsOverviewNames =
+        challengeDefinition.supportedEnvironments().stream().map(env -> env.overview()).toList();
+    if (challengeEnvironmentsOverviewNames.size() == 1) {
+      return challengeEnvironmentsOverviewNames.iterator().next();
+    } else {
+      // Now if we have multiple we select the lowest one for our global environment definition
+      var allEnvironmentsOverviewNames = environments.stream().map(env -> env.overview()).toList();
+      return allEnvironmentsOverviewNames.stream()
+          .filter(name -> challengeEnvironmentsOverviewNames.contains(name))
+          .findFirst()
+          .orElse("Unknown");
+    }
+  }
+
+  public static ChallengeUI toUI(
+      ChallengeDefinition definition,
+      ScoreCard scoreCard,
+      RuntimeEnvironment environment,
+      List<Difficulty> difficulties,
+      List<Environment> environments,
+      Navigator navigation) {
+    return new ChallengeUI(
+        definition, scoreCard, environment, difficulties, environments, navigation);
+  }
 }

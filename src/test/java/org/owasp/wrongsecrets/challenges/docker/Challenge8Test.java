@@ -1,38 +1,26 @@
 package org.owasp.wrongsecrets.challenges.docker;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.owasp.wrongsecrets.ScoreCard;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(MockitoExtension.class)
+import org.junit.jupiter.api.Test;
+
 public class Challenge8Test {
 
-    @Mock
-    private ScoreCard scoreCard;
+  @Test
+  void spoilerShouldRevealAnswerAndSolveAnswerWhenRandom() {
+    var challenge = new Challenge8("");
 
-    @Test
-    void spoilerShouldRevealAnswerAndSolveAnswerWhenRandom() {
-        var challenge = new Challenge8(scoreCard, "");
+    assertThat(challenge.spoiler().solution().length()).isEqualTo(10);
+    assertThat(challenge.answerCorrect((challenge.spoiler().solution()))).isTrue();
+    assertThat(challenge.spoiler().solution()).isNotEmpty();
+  }
 
-        Assertions.assertThat(challenge.spoiler().solution().length()).isEqualTo(10);
-        Assertions.assertThat(challenge.solved((challenge.spoiler().solution()))).isTrue();
-        Assertions.assertThat(challenge.spoiler().solution()).isNotEmpty();
-        Mockito.verify(scoreCard).completeChallenge(challenge);
-    }
+  @Test
+  void spoilerShouldRevealAnswerAndSolveAnswerWhenNotRandom() {
+    var challenge = new Challenge8("1234567890");
 
-    @Test
-    void spoilerShouldRevealAnswerAndSolveAnswerWhenNotRandom() {
-        var challenge = new Challenge8(scoreCard, "1234567890");
-
-        Assertions.assertThat(challenge.spoiler().solution().length()).isEqualTo(10);
-        Assertions.assertThat(challenge.solved((challenge.spoiler().solution()))).isTrue();
-        Assertions.assertThat(challenge.spoiler().solution()).isEqualTo("1234567890");
-        Mockito.verify(scoreCard).completeChallenge(challenge);
-    }
-
-
+    assertThat(challenge.spoiler().solution().length()).isEqualTo(10);
+    assertThat(challenge.answerCorrect((challenge.spoiler().solution()))).isTrue();
+    assertThat(challenge.spoiler().solution()).isEqualTo("1234567890");
+  }
 }

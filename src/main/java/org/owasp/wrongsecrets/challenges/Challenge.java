@@ -1,49 +1,21 @@
 package org.owasp.wrongsecrets.challenges;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.owasp.wrongsecrets.RuntimeEnvironment.Environment;
-import org.owasp.wrongsecrets.ScoreCard;
+/** General Abstract Challenge class containing all the necessary members for a challenge. */
+public interface Challenge {
 
-import java.util.List;
+  /**
+   * Returns a Spoiler object containing the secret for the challenge.
+   *
+   * @return Spoiler with anser
+   */
+  Spoiler spoiler();
 
-@RequiredArgsConstructor
-@Getter
-public abstract class Challenge {
-
-    private final ScoreCard scoreCard;
-
-    public abstract Spoiler spoiler();
-
-    protected abstract boolean answerCorrect(String answer);
-
-    public abstract List<Environment> supportedRuntimeEnvironments();
-
-    public abstract int difficulty();
-
-    public abstract String getTech();
-
-    public abstract boolean isLimittedWhenOnlineHosted();
-
-    public abstract boolean canRunInCTFMode();
-
-    public boolean solved(String answer) {
-        var correctAnswer = answerCorrect(answer);
-        if (correctAnswer) {
-            scoreCard.completeChallenge(this);
-        }
-        return correctAnswer;
-    }
-
-    public String getExplanation() {
-        return this.getClass().getSimpleName().toLowerCase();
-    }
-
-    public String getHint() {
-        return this.getClass().getSimpleName().toLowerCase() + "_hint";
-    }
-
-    public String getReason() {
-        return this.getClass().getSimpleName().toLowerCase() + "_reason";
-    }
+  /**
+   * method that needs to be overwritten by the Challenge implementation class to do the actual
+   * evaluation of the answer.
+   *
+   * @param answer String provided by the user
+   * @return true if answer is Correct
+   */
+  boolean answerCorrect(String answer);
 }
