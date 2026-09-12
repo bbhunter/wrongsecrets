@@ -1,6 +1,6 @@
 {
   "name": "OWASP WrongSecrets (Java 26 & Node.js 26 Dev Container)",
-  "image": "eclipse-temurin:26-jdk-resolute",
+  "image": "eclipse-temurin:26-jdk-resolute", //resolute
   "features": {
     "ghcr.io/devcontainers/features/node:2": {
       "version": "26",
@@ -15,7 +15,12 @@
     },
     "ghcr.io/devcontainers-extra/features/terraform-docs:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:4.1.0": {
-      "enableOnStartup": true
+      "enableOnStartup": true,
+      "version": "latest",
+        "moby": false
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+        "version": "1.22"
     },
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/common-utils:2": {
