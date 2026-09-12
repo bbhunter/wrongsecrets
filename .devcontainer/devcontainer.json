@@ -1,6 +1,6 @@
 {
   "name": "OWASP WrongSecrets (Java 26 & Node.js 26 Dev Container)",
-  "image": "eclipse-temurin:26-jdk-jammy",
+  "image": "eclipse-temurin:26-jdk-resolute",
   "features": {
     "ghcr.io/devcontainers/features/node:2": {
       "version": "26",
