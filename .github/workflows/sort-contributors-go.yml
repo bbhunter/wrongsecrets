@@ -54,4 +54,7 @@ jobs:
         run: make lint
 
       - name: Security
-        run: make security
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          make security

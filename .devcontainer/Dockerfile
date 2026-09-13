@@ -57,6 +57,8 @@ ENV PATH="/usr/local/go/bin:/go/bin:${PATH}"
 RUN mkdir -p /go \
     && go version \
     && go env GOPATH
+RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
+RUN go install github.com/securego/gosec/v2/cmd/gosec@latest
 
 # ---------------------------------------------------------------------------
 # Terraform
