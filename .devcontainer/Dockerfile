@@ -104,4 +104,4 @@ RUN install -m 0755 -d /etc/apt/keyrings \
 # Workspace
 # ---------------------------------------------------------------------------
 
-WORKDIR /workspace
+WORKDIR /workspaces
